@@ -51,9 +51,9 @@
 #include "geolocation/shell_access_token_store.h"
 #include "googleurl/src/gurl.h"
 #include "ui/base/l10n/l10n_util.h"
-#include "webkit/dom_storage/dom_storage_map.h"
-#include "webkit/glue/webpreferences.h"
-#include "webkit/user_agent/user_agent_util.h"
+#include "webkit/common/dom_storage/dom_storage_map.h"
+#include "webkit/common/webpreferences.h"
+#include "webkit/common/user_agent/user_agent_util.h"
 #include "webkit/plugins/npapi/plugin_list.h"
 
 
@@ -105,16 +105,16 @@ void ShellContentBrowserClient::AppendExtraCommandLineSwitches(
   if (command_line->GetSwitchValueASCII("type") != "renderer")
     return;
   if (child_process_id > 0) {
-    content::RenderProcessHost* rph =
-      content::RenderProcessHost::FromID(child_process_id);
-
-    content::RenderProcessHost::RenderWidgetHostsIterator iter(
-      rph->GetRenderWidgetHostsIterator());
-    for (; !iter.IsAtEnd(); iter.Advance()) {
-      const content::RenderWidgetHost* widget = iter.GetCurrentValue();
-      DCHECK(widget);
-      if (!widget || !widget->IsRenderView())
+    content::RenderWidgetHost::List widgets =
+      content::RenderWidgetHost::GetRenderWidgetHosts();
+    for (size_t i = 0; i < widgets.size(); ++i) {
+      if (widgets[i]->GetProcess()->GetID() != child_process_id)
         continue;
+      if (!widgets[i]->IsRenderView())
+        continue;
+
+      const content::RenderWidgetHost* widget = widgets[i];
+      DCHECK(widget);
 
       content::RenderViewHost* host = content::RenderViewHost::From(
         const_cast<content::RenderWidgetHost*>(widget));

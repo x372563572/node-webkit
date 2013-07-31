@@ -52,6 +52,8 @@
 #include "net/url_request/url_request_context_storage.h"
 #include "net/url_request/url_request_job_factory_impl.h"
 
+using base::MessageLoop;
+
 namespace content {
 
 namespace {
@@ -150,8 +152,9 @@ net::URLRequestContext* ShellURLRequestContextGetter::GetURLRequestContext() {
     net::HttpCache::DefaultBackend* main_backend =
         new net::HttpCache::DefaultBackend(
             net::DISK_CACHE,
+            net::CACHE_BACKEND_SIMPLE,
             cache_path,
-            0,
+            10 * 1024 * 1024,  // 10M
             BrowserThread::GetMessageLoopProxyForThread(
                 BrowserThread::CACHE));
 
